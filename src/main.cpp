@@ -16,9 +16,8 @@ int y = 0;				// Y Position.
 #define ymax 135-tsp*3	// Y Position Max. (I fudged this. Might not scale.)
 int yd = +1;			// Y Direction.
 
-void disp(int x, int y, int fill) {
-	tft.fillScreen(fill);
-	tft.setTextColor(tfg, tbg);
+void disp(int x, int y, int fg, int bg) {
+	tft.setTextColor(fg, bg);
 	tft.setCursor(x, y);
 	tft.println(" Roger");
 	tft.setCursor(x, y+tsp);
@@ -29,9 +28,14 @@ void disp(int x, int y, int fill) {
 
 // Text foreground colors.
 int fgcolors[] = {TFT_WHITE, TFT_RED, TFT_ORANGE, TFT_YELLOW, TFT_GREEN, TFT_BLUE, TFT_PURPLE, TFT_VIOLET, TFT_GREY, TFT_PINK};
+int fgcolorsindex = 0;
 
 int newcolor() {
-	return fgcolors[random(0, sizeof(fgcolors)/sizeof(int)-1)];
+	fgcolorsindex += 1;
+	if (fgcolorsindex > sizeof(fgcolors)/sizeof(int)-1){
+		fgcolorsindex = 0;
+	}
+	return fgcolors[fgcolorsindex];
 }
 
 void setup() {
@@ -42,34 +46,43 @@ void setup() {
 	tft.init();
 	tft.setRotation(1);			// Landscape TTGO to the left.
 	tft.setTextSize(ts);
+	tft.fillScreen(tbg);
+	// Display Message.
+	disp(x, y, tfg, tbg);
 }
 
 void loop() {
-	// Display Message.
-	disp(x, y, TFT_BLACK);
+	// Save location.
+	int xold=x;
+	int yold=y;
 	
 	// Update X.
-	x += xd;
+	x += xd*2;
 	// Hit wall?
 	if(x < 0 || x > xmax){
 		// Yes, change direction.
 		xd *= -1;
-		x += xd;
+		x += xd*2;
 		// Change text color.
 		tfg = newcolor();
 	}
 	
 	// Update Y.
-	y += yd;
+	y += yd*2;
 	// Hit wall?
 	if(y < 0 || y > ymax){
 		// Yes, change direction.
 		yd *= -1;
-		y += yd;
+		y += yd*2;
 		// Change text color.
 		tfg = newcolor();
 	}
 	
+	// Erase old message.
+	disp(xold, yold, TFT_BLACK, tbg);
+	// Display new message.
+	disp(x, y, tfg, tbg);
+	
 	// Delay timer.
-	delay(100);
+	delay(250);
 }
